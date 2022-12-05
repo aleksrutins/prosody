@@ -28,5 +28,6 @@ endforeach
 prosody_lib = static_library('prosody', source_files, dependencies : dependencies)
 prosody_dep = declare_dependency(
     link_with : prosody_lib,
+    dependencies : dependencies,
     include_directories : include_directories('.')
 )
