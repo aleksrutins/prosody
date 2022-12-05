@@ -23,13 +23,30 @@ namespace Prosody {
 
     public Template get_for_resource(string resource, ref ErrorData? error_data)
             throws SyntaxError, Error {
+        return get_template(
+            resource,
+            () => resources_lookup_data(resource, 0),
+            ref error_data
+        );
+    }
+
+    public Template get_for_path(string path, ref ErrorData? error_data) throws Error, SyntaxError {
+        return get_template(
+            path,
+            () => Util.read_file(File.new_for_path(path)),
+            ref error_data
+        );
+    }
+
+    private delegate Bytes Reader() throws Error;
+    private Template get_template(string path, Reader get_bytes, ref ErrorData? error_data) throws Error, SyntaxError {
         if (template_cache == null) template_cache = new Gee.HashMap<string, Template>();
         if (cached_keys == null) {
             var array = new string[CACHE_SIZE];
             cached_keys = new Gee.ArrayList<string>.wrap(array);
         }
 
-        if (!template_cache.has_key(resource)) {
+        if (!template_cache.has_key(path)) {
             if (cached_keys.size >= CACHE_SIZE) {
                 // cap number of templates
                 template_cache.unset(cached_keys[CACHE_SIZE - 1]);
@@ -37,27 +54,31 @@ namespace Prosody {
             }
 
             if (!lib_initialized()) Std.register_standard_library();
-            var bytes = resources_lookup_data(resource, 0);
-            var parser = new Parser.b(bytes);
-            parser.path = resource;
-            try {
-                template_cache[resource] = parser.parse();
-                cached_keys.insert(0, resource);
-            } catch (SyntaxError err) {
-                int line_number; int line_offset; int err_start; int err_end;
-                parser.get_current_token(out line_number, out line_offset,
-                                        out err_start, out err_end);
-                error_data = new ErrorData(err, line_number, line_offset, 
-                                        err_start, err_end, new Slice.b(bytes));
-                throw err;
-            }
+            var bytes = get_bytes();
+            parse_and_cache(path, bytes, ref error_data);
         } else {
             // Move recently used items to the front so they don't get culled.
-            cached_keys.remove(resource);
-            cached_keys.insert(0, resource);
+            cached_keys.remove(path);
+            cached_keys.insert(0, path);
         }
 
-        return template_cache[resource];
+        return template_cache[path];
+    }
+
+    private void parse_and_cache(string path, GLib.Bytes bytes, ref ErrorData? error_data) throws Error, SyntaxError {
+        var parser = new Parser.b(bytes);
+        parser.path = path;
+        try {
+            template_cache[path] = parser.parse();
+            cached_keys.insert(0, path);
+        } catch (SyntaxError err) {
+            int line_number; int line_offset; int err_start; int err_end;
+            parser.get_current_token(out line_number, out line_offset,
+                                    out err_start, out err_end);
+            error_data = new ErrorData(err, line_number, line_offset, 
+                                    err_start, err_end, new Slice.b(bytes));
+            throw err;
+        }
     }
 
     public class ErrorData : Data.Mapping {

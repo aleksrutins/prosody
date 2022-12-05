@@ -11,7 +11,7 @@ dependencies = [
 prosody = ['parser', 'lib', 'data', 'expression', 'writers', 'loader',
         'slice']
 prosody_misc = ['json', 'http', 'diff', 'i18n', 'tsv', 'xml', 'test',
-        'AppStream', 'mimeinfo', 'I18nUtil']
+        'AppStream', 'mimeinfo', 'I18nUtil', 'file']
 sources = []
 foreach f : prosody
     sources += [f]
