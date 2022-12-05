@@ -113,16 +113,16 @@ namespace Prosody.xHTTP {
 
         private async void render_request(Soup.Session session, string url,
                 Data.Data ctx, Writer output) throws Error {
-            var req = session.request_http("GET", url);
-            req.get_message().request_headers.append("Accept", ACCEPTS);
-            var response = yield req.send_async(null);
-            var status = req.get_message().status_code;
+            var req = new Soup.Message("GET", url);
+            req.request_headers.append("Accept", ACCEPTS);
+            var response = yield session.send_async(req, Priority.DEFAULT, null);
+            var status = req.status_code;
             if (status != 200) throw new HTTPError.STATUS_CODE("HTTP %u", status);
 
-            var resp = yield build_response_data(req.get_content_type(), response);
+            var resp = yield build_response_data(req.get_response_headers().get_one("Content-Type"), response);
 
             yield outputlock.enter();
-            var coremime = req.get_content_type().split(";", 2)[0];
+            var coremime = req.get_response_headers().get_one("Content-Type").split(";", 2)[0];
             var loopctx = Data.Let.build(target, resp,
                     Data.Let.build(mimetarget, new Data.Literal(coremime), ctx));
             yield loop.exec(loopctx, output);

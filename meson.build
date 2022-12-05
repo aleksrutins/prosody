@@ -3,7 +3,7 @@ project('prosody', 'vala', 'c')
 dependencies = [
     dependency('json-glib-1.0'),
     dependency('gee-0.8'),
-    dependency('libsoup-2.4'),
+    dependency('libsoup-3.0'),
     meson.get_compiler('vala').find_library('posix'),
     dependency('libxml-2.0'),
 ]

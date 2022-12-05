@@ -440,8 +440,8 @@ namespace Prosody.Std {
 
     private class BaseFilter : Filter {
         public override Data.Data filter(Data.Data relative, Data.Data _base) {
-            var normalized = new Soup.URI.with_base(new Soup.URI(@"$_base"), @"$relative");
-            return new Data.Literal(normalized.to_string(false));
+            var normalized = Uri.parse_relative(Uri.parse(@"$_base", UriFlags.NONE), @"$relative", UriFlags.NONE);
+            return new Data.Literal(normalized.to_string());
         }
     }
 
@@ -485,7 +485,7 @@ namespace Prosody.Std {
     private class EscapeURIFilter : Filter {
         public override bool? should_escape() {return false;}
         public override Data.Data filter0(Data.Data a) {
-            return new Data.Literal(Soup.URI.encode(a.to_string(), "#?&=/"));
+            return new Data.Literal(Uri.escape_string(a.to_string(), "#?&=/", true));
         }
     }
 
