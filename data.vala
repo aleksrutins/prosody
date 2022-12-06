@@ -112,6 +112,23 @@ namespace Prosody.Data {
         return false;
     }
 
+    public class ObjectData : Data {
+        public Object thing;
+        public ObjectData(Object thing) {
+            this.thing = thing;
+        }
+        public override void foreach_map(ForeachMap cb) {
+            foreach(var prop in thing.get_class().list_properties()) {
+                Value val = @new(typeof(Value));
+                thing.get_property(prop.name, ref val);
+                if(val.holds(Type.OBJECT)) {
+                    cb(new Slice.s(prop.name), new ObjectData(val.get_object()));
+                } else if(val.holds(Type.POINTER)) {
+                }
+            }
+        }
+    }
+
     public class Empty : Data {
         public override Data get(Slice _) {return this;}
         public override string to_string() {return "";}
