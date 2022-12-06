@@ -118,7 +118,21 @@ namespace Prosody.Data {
             this.thing = thing;
         }
 
-        extern Data? value_to_data(Value val);
+        Gee.List<T> iterator_to_list<T>(Gee.Iterator<T> iter) {
+            var list = new Gee.LinkedList<T>();
+            for(var item = iter.get(); iter.next(); item = iter.get()) {
+                list.add(item);
+            }
+            return list;
+        }
+
+        Data? value_to_data(Value val) {
+            if(val.holds(typeof(Gee.List))) {
+                var list = (Gee.List<Object>)val.get_object();
+                return new List(iterator_to_list(list.map<Data>((value) => new ObjectData(value))));
+            }
+            return null;
+        }
 
         public override Data get(Slice prop) {
             Value val = @new(typeof(Value));
