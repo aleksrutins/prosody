@@ -117,14 +117,17 @@ namespace Prosody.Data {
         public ObjectData(Object thing) {
             this.thing = thing;
         }
+
+        extern Data? value_to_data(Value val);
+
+        public override Data get(Slice prop) {
+            Value val = @new(typeof(Value));
+            thing.get_property(prop.to_string(), ref val);
+            return value_to_data(val);
+        }
         public override void foreach_map(ForeachMap cb) {
             foreach(var prop in thing.get_class().list_properties()) {
-                Value val = @new(typeof(Value));
-                thing.get_property(prop.name, ref val);
-                if(val.holds(Type.OBJECT)) {
-                    cb(new Slice.s(prop.name), new ObjectData(val.get_object()));
-                } else if(val.holds(Type.POINTER)) {
-                }
+                if(cb(new Slice.s(prop.name), get(new Slice.s(prop.name)))) break;
             }
         }
     }

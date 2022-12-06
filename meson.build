@@ -12,17 +12,21 @@ prosody = ['parser', 'lib', 'data', 'expression', 'writers', 'loader',
         'slice']
 prosody_misc = ['json', 'http', 'diff', 'i18n', 'tsv', 'xml', 'test',
         'AppStream', 'mimeinfo', 'I18nUtil', 'file']
+prosody_c = ['value_utils']
 sources = []
 foreach f : prosody
-    sources += [f]
+    sources += [f + '.vala']
 endforeach
 foreach f : prosody_misc
-    sources += ['misc/' + f]
+    sources += ['misc/' + f + '.vala']
+endforeach
+foreach f : prosody_c
+    sources += ['c/' + f + '.c']
 endforeach
 
 source_files = []
 foreach f : sources
-    source_files += files(f + '.vala')
+    source_files += files(f)
 endforeach
 
 prosody_lib = static_library('prosody', source_files, dependencies : dependencies)
